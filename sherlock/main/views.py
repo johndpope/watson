@@ -5,6 +5,9 @@ from django.views.generic import TemplateView
 from db import DBConnector
 import dropbox
 import json
+import time
+import urllib2
+import base64
 
 
 
@@ -32,12 +35,30 @@ def index(request):
     return render_to_response('index.html', {"user": info})
 
 def search(request):
-    response_data = {
-        "pudding": {
-            "proof": 42
-        }
-    };
+    time.sleep(1);
+    response_data = [{
+        "name": "owl",
+        "image": get_image('http://i.imgur.com/HTYTD3Y.jpg')
+    }, {
+        "name": "trees",
+        "image": get_image('http://i.imgur.com/RLJbxDS.jpg')
+    }, {
+        "name": "dog",
+        "image": get_image('http://i.imgur.com/r0YeLYV.jpg')
+    }, {
+        "name": "grand central",
+        "image": get_image('http://i.imgur.com/ao7XZj4.jpg')
+    }, {
+        "name": "dragon",
+        "image": get_image('http://i.imgur.com/SEs8Xky.jpg')
+    }, {
+        "name": "frozen truck",
+        "image": get_image('http://i.imgur.com/OYsHKlH.jpg')
+    }];
     return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+def get_image(url):
+    return base64.b64encode(urllib2.urlopen(url).read())
 
 def dropbox_auth_finish(request):
     try:

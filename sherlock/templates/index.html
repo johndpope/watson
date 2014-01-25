@@ -3,12 +3,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
+    <link href='http://fonts.googleapis.com/css?family=Muli' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="/css/application.css">
 </head>
 <body>
 
 <header id="header">
-    <div id="logo" class="h2">watson</div>
+    <div id="logo" class="h2">watson <span class="subheader">Your clever photo butler</span></div>
     <div id="user-info" class="pull-right"><br>{{ user.display_name }}</div>
     <div class="text-center">
         <input type="text" name="query" id="query" placeholder="e.g. santa monica">
@@ -16,9 +17,30 @@
 </header>
 
 <div id="content">
-    
+    <p></p>
 </div>
 
+<div id="columns">
+    <div class="pin"><div>trees</div><img src='http://i.imgur.com/RLJbxDS.jpg'/></div>
+    <div class="pin"><div>dog</div><img src='http://i.imgur.com/r0YeLYV.jpg'/></div>
+    <div class="pin"><div>grand central</div><img src='http://i.imgur.com/ao7XZj4.jpg'/></div>
+    <div class="pin"><div>dragon</div><img src='http://i.imgur.com/SEs8Xky.jpg'/></div>
+    <div class="pin"><div>frozen truck</div><img src='http://i.imgur.com/OYsHKlH.jpg'/></div></div>
+</div>
+
+<script type="text/template" id="flash-error">
+    <div class="flash flash-error on-error">{message}</div>
+</script>
+<script type="text/template" id="loading-screen">
+    <div id="loading-layover on-loading">
+        <h4 class="text-center">Making history</h4>
+        <div class="spinner"></div>
+    </div>
+</script>
+<script type="text/template" id="result">
+<div>{name}</div>
+<img src="data:image/jpeg;base64,{image}" />
+</script>
 <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.0.js"></script>
 <script type="text/javascript">
 $(function () {
@@ -35,19 +57,69 @@ function collateTimeout(callback, timeout) {
     };
 }
 
-function render(response) {
-    console.log("render");
-    console.log(response);
-}
+var template = {
+    get: function (name) {
+        return $('script#' + name).text()
+    },
+    inject: function (content, context) {
+        var params = content.match(/\{([^\{\}]*)\}/g);
+        params.forEach(function (param) {
+            key = param.replace("{", "").replace("}", "");
+            content = content.replace(param, context[key]);
+        });
+        return content;
+    },
+    yes: function (name, context) {
+        return this.inject(this.get(name), context);
+    }
+};
 
-$("#query").on('keyup', collateTimeout(function (el) {
-    var query = $(el).val();
-    var jqxhr = $.get("/api/search", {"query": query}, function (data, status, jqXHR) {}, 'json')
-    .done(render)
-    .fail(function (data) {
-        render(new Error("Failed to connect"));
-    });
-}, 300));
+function Pending() {};
+function Response(data) {
+    this.data = data;
+};
+
+var render = {
+    do: function (context) {
+        this.place(this[context.constructor.name](context));
+    },
+    place: function (html) {
+        $('#content').addClass('fly-away');
+        setTimeout(function () {
+            $('#content').html(html).removeClass('fly-away');
+        }, 300);
+    },
+    Pending: function (context) {
+        return template.get('loading-screen');
+    },
+    Response: function (context) {
+        var response = '';
+        context.data.forEach(function (result) {
+            response += template.yes('result', result);
+        });
+        return response;
+    },
+    Error: function (context) {
+        return template.yes('flash-error', context);
+    }
+};
+
+$("#query").on('keyup', collateTimeout((function () {
+    var previousQuery;
+    return function (el) {
+        var query = $(el).val().trim();
+        if (!query || query === previousQuery) return;
+        previousQuery = query;
+        render.do(new Pending())
+        var jqxhr = $.get("/api/search", {"query": query}, function (data, status, jqXHR) {}, 'json')
+        .done(function (data) {
+            render.do(new Response(data));
+        })
+        .fail(function (data) {
+            render.do(new Error("Failed to connect"));
+        });
+    };
+}()), 400));
 
 });
 
