@@ -1,3 +1,5 @@
+import commands
+import re
 from PIL import Image
 import dropbox
 import pHash
@@ -32,7 +34,7 @@ for user in users:
         if data['is_dir']:
             continue
         
-        if not data['path'].endsWith('.jpg'):
+        if not data['path'].endswith('.jpg'):
             continue
 
         print name
@@ -47,26 +49,31 @@ for user in users:
         img = Image.open(temp.name)
         exif_data = img._getexif()
         print exif_data
-        break
+        
         hash1 = pHash.imagehash(temp.name)
 
-        #image_quality = #
+        output = commands.getoutput('blur-detection')
+        p=re.compile('.*density: (\d+\.\d+)')
 
-        images = conn.get_image(user_id=user['user_id'], is_duplicate=True)
+        image_quality = float(p.matcher(output).group(1))
+
+        images = conn.get_image(user_id=user['user_id'], is_duplicate=False)
+        
+        # conn.insert_image(
         for image in images:
             # different shit
             if pHash.hamming_distance(hash1, image['hash']) > 10:
+                print hash1
             #    conn.insert_image(# 
             # same shit but worse quality
-            #elif image_quality < image['quality']:
+            elif image_quality < image['quality']:
             #    conn.insert_image(#
-                print 'test'
+                print 'test1'
             else:
-                print 'test'
+                print 'test2'
             #    conn.isnert_image(#
 
         os.unlink(temp.name)
-    break
         # download image
         # parse out EXIF data
         # get lat/long from geo data
