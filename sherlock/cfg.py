@@ -1,4 +1,4 @@
-DB_CONF = {"host": "10.55.51.79",
+DB_CONF = {"host": "watson.codef.in",
            "port": 27017
 }
 

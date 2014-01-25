@@ -8,27 +8,43 @@ class DBConnector():
     def __init__(self):
         pass
 
-    def insert_user(self, external_id, session_key):
-        return client.users.insert({
-            "external_id": external_id,
-            "session_key": session_key,
-        })
+    def add_user(self, external_id, session_key):
+
+        cursor = client.users.find({"external_id": external_id})
+        if cursor.count() > 0:
+            return client.users.update({
+                                           "external_id": external_id}, {
+                                           "$set": {"session_key": session_key}
+                                       })
+        else:
+            return client.users.insert({
+                "external_id": external_id,
+                "session_key": session_key,
+                "cursor": None
+            })
+
+    def update_cursor(self, user_id, cursor):
+        client.users.update({"_id": user_id},
+                            {"$set": {"cursor": cursor}})
 
     def delete_user(self, user_id):
         client.users.remove({"_id": user_id})
 
     def get_user(self, external_id):
-        client.users.find({"external_id": external_id})
+        return client.users.find({"external_id": external_id})
 
-    def insert_image(self, user_id, filename, coords, external_ref, hash):
+    def get_all_users(self):
+        return client.users.find({})
+
+    def upsert_image(self, user_id, filename, coords, external_ref, hash):
         client.images.ensure_index([("geo", GEO2D)])
         id = client.images.insert({
-            "user_id": user_id,
-            "filename": filename,
-            "geo": coords,
-            "external_ref": external_ref,
-            "hash": hash
-        })
+                                      "user_id": user_id,
+                                      "filename": filename,
+                                      "geo": coords,
+                                      "external_ref": external_ref,
+                                      "hash": hash
+                                  }, upsert=True)
         return id
 
     def get_image(self, user_id=None, hash=None):
@@ -57,9 +73,15 @@ class DBConnector():
 
 if __name__ == "__main__":
     conn = DBConnector()
+    client.users.drop()
     client.images.drop()
-    conn.insert_image("xx", "ss", 56.9, 110, "dfsdf", 12323)
-    x = conn.find_images_neer("xx", coords=[56.9, 110], distance=10)
+
+    conn.add_user("exx", "sess")
+    conn.add_user("exx", "cccc")
+
+    bb = conn.get_user("exx")
+
     import pdb;
 
     pdb.set_trace()
+
