@@ -75,7 +75,7 @@ class DBConnector():
         })
         return cur
     
-    def get_images_all:
+    def get_images_all(self)
         return client.images.find()
 
 
