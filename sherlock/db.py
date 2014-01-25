@@ -32,7 +32,7 @@ class DBConnector():
         client.users.remove({"_id": user_id})
 
     def get_user(self, external_id):
-        return client.users.find({"external_id": external_id})
+        return client.users.find_one({"external_id": external_id})
 
     def get_all_users(self):
         return client.users.find({})
