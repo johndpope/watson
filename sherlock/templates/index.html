@@ -4,17 +4,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <link rel="stylesheet" type="text/css" href="/css/application.css">
-    <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.0.js"></script>
 </head>
 <body>
 
 <header id="header">
     <div id="logo" class="h2">watson</div>
-    <div id="user-info" class="pull-right"><br>username</div>
+    <div id="user-info" class="pull-right"><br>{{ user.display_name }}</div>
     <div class="text-center">
         <input type="text" name="query" id="query" placeholder="e.g. santa monica">
     </div>
 </header>
 
+<div id="content">
+    
+</div>
+
+<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.0.js"></script>
+<script type="text/javascript">
+$(function () {
+
+function collateTimeout(callback, timeout) {
+    var timeoutId;
+    return function (e) {
+        if (timeoutId != null) {
+            clearTimeout(timeoutId);
+        }
+        timeoutId = setTimeout(function () {
+            callback(e.target);
+        }, timeout);
+    };
+}
+
+function render(response) {
+    console.log("render");
+    console.log(response);
+}
+
+$("#query").on('keyup', collateTimeout(function (el) {
+    var query = $(el).val();
+    var jqxhr = $.get("/api/search", {"query": query}, function (data, status, jqXHR) {}, 'json')
+    .done(render)
+    .fail(function (data) {
+        render(new Error("Failed to connect"));
+    });
+}, 300));
+
+});
+
+</script>
 </body>
 </html>
