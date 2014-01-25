@@ -9,18 +9,18 @@ class DBConnector():
     def __init__(self):
         pass
 
-    def add_user(self, external_id, session_key):
+    def add_user(self, external_id, access_token):
 
         cursor = client.users.find({"external_id": external_id})
         if cursor.count() > 0:
             return client.users.update({
                                            "external_id": external_id}, {
-                                           "$set": {"session_key": session_key}
+                                           "$set": {"access_token": access_token}
                                        })
         else:
             return client.users.insert({
                 "external_id": external_id,
-                "session_key": session_key,
+                "access_token": access_token,
                 "cursor": None
             })
 
