@@ -118,6 +118,7 @@ body > header {
     outline: none;
     padding: 0.5em;
     width: 75%;
+    transition: all 0.3s;
 }
 
 #query:focus {
