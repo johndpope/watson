@@ -1,5 +1,6 @@
 from pymongo import MongoClient, GEO2D
 import cfg
+import datetime
 
 client = MongoClient(cfg.DB_CONF["host"], cfg.DB_CONF["port"]).watson
 
@@ -36,14 +37,18 @@ class DBConnector():
     def get_all_users(self):
         return client.users.find({})
 
-    def upsert_image(self, user_id, filename, coords, external_ref, hash):
+    def insert_image(self, user_id, filename, coords, external_ref, hash, timestamp, quality):
+        if not isinstance(timestamp, datetime.datetime):
+            raise RuntimeError
         client.images.ensure_index([("geo", GEO2D)])
         id = client.images.insert({
                                       "user_id": user_id,
                                       "filename": filename,
                                       "geo": coords,
                                       "external_ref": external_ref,
-                                      "hash": hash
+                                      "hash": hash,
+                                      "timestamp": timestamp,
+                                      "quality": quality
                                   }, upsert=True)
         return id
 
@@ -82,6 +87,5 @@ if __name__ == "__main__":
     bb = conn.get_user("exx")
 
     import pdb;
-
     pdb.set_trace()
 
