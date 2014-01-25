@@ -46,18 +46,20 @@ for user in users:
         temp.write(f.read())
         temp.close()
         
+	print temp.name
         img = Image.open(temp.name)
         exif_data = img._getexif()
         print exif_data
         
         hash1 = pHash.imagehash(temp.name)
-
-        output = commands.getoutput('blur-detection')
+	
+	command = 'blur-detection ' + temp.name
+        output = commands.getoutput(command)
         p=re.compile('.*density: (\d+\.\d+)')
 
-        image_quality = float(p.matcher(output).group(1))
+        image_quality = float(p.match(output).group(1))
 
-        images = conn.get_image(user_id=user['user_id'], is_duplicate=False)
+        images = conn.get_image(user_id=user['_id'], is_duplicate=False)
         
         # conn.insert_image(
         for image in images:
