@@ -2,22 +2,33 @@ import dropbox
 import json
 from db import DBConnector
 
-
 conn = DBConnector()
-stuff = conn.add_user('19241364', 'safety first')
-print stuff
+users = [x for x in conn.get_all_users()]
 
-"""
-access_token = 'safety first'
-client = dropbox.client.DropboxClient(access_token)
-deltas = client.delta()
-print json.dumps(deltas, sort_keys=True,
-               indent=4, separators=(',', ': '))
-cursor = deltas['cursor']
-for entry in deltas['entries']:
-    name = entry[0]
-    data = entry[1]
-    if data['is_dir']:
+for user in users:
+    access_token = user['access_token']
+    if access_token is None:
         continue
-    print name + "\n"
-    """
+    
+    try:
+        client = dropbox.client.DropboxClient(access_token)
+        client.account_info()
+    except dropbox.rest.ErrorResponse, e:
+        print 'invalid dropbox access_token'
+        continue
+    
+    delta = client.delta(user['cursor'])
+    #conn.update_cursor(user['uid'], delta['cursor'])
+    
+    for entry in delta['entries']:
+        name = entry[0]
+        data = entry[1]
+        if data['is_dir']:
+            continue
+        print name
+        print data
+        # download image
+        # parse out EXIF data
+        # get lat/long from geo data
+        # insert a picture into DB
+        # create hash/compare/etc
