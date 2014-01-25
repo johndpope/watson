@@ -37,7 +37,7 @@ class DBConnector():
     def get_all_users(self):
         return client.users.find({})
 
-    def insert_image(self, user_id, filename, coords, external_ref, hash, timestamp, quality,is_duplicate=False):
+    def insert_image(self, user_id, filename, coords, external_ref, hash, timestamp, quality, is_duplicate=False):
         if not isinstance(timestamp, datetime.datetime):
             raise RuntimeError
         client.images.ensure_index([("geo", GEO2D)])
@@ -49,20 +49,24 @@ class DBConnector():
                                       "hash": hash,
                                       "timestamp": timestamp,
                                       "quality": quality,
-				      "is_duplicate": is_duplicate
+                                      "is_duplicate": is_duplicate
                                   }, upsert=True)
         return id
 
     def get_images(self, user_id=None, hash=None,is_duplicate=False):
         if user_id is None and hash is None:
             raise RuntimeError
-        srch = {}
+        srch = {"is_duplicate": is_duplicate}
         if user_id is not None:
             srch["user_id"] = user_id
         if hash is not None:
             srch["hash"] = hash
 
         return client.images.find(srch)
+
+    def mark_image_duplicate(self, image_id):
+        conn.update({"_id": image_id}, {"$set": {"is_duplicate": True}})
+
 
     def find_images_near(self, user_id, coords=[0, 0], distance=0):
         if len(coords) != 2:
@@ -90,5 +94,6 @@ if __name__ == "__main__":
     bb = conn.get_user("exx")
 
     import pdb;
+
     pdb.set_trace()
 
