@@ -64,17 +64,19 @@ class DBConnector():
 
         return client.images.find(srch)
 
-    def find_images_neer(self, user_id, coords=[0, 0], distance=0):
+    def find_images_near(self, user_id, coords=[0, 0], distance=0):
         if len(coords) != 2:
             raise RuntimeError
         cur = client.images.find({
             "user_id": user_id,
             "geo": {"$geoWithin": {
                 "$centerSphere": [coords, distance]
-            }
-            }
+            }}
         })
         return cur
+    
+    def get_images_all:
+        return client.images.find()
 
 
 if __name__ == "__main__":
