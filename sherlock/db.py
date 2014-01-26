@@ -53,12 +53,12 @@ class DBConnector():
                                   }, upsert=True)
         return id
 
-    def get_image(self, user_id=None, hash=None,is_duplicate=False):
+    def get_images(self, user_id=None, hash=None,is_duplicate=False):
         if user_id is None and hash is None:
             raise RuntimeError
         srch = {}
         if user_id is not None:
-            srch["_id"] = user_id
+            srch["user_id"] = user_id
         if hash is not None:
             srch["hash"] = hash
 
