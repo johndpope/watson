@@ -10,6 +10,7 @@ import EXIF
 from db import DBConnector
 
 conn = DBConnector()
+group = conn.get_highest_group()
 users = [x for x in conn.get_all_users()]
 
 

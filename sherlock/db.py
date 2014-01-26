@@ -82,6 +82,8 @@ class DBConnector():
     def get_images_all(self):
         return client.images.find()
 
+    def get_highest_group(self):
+        return int(client.images.find({}).sort("group", -1).limit(1)[0]['group'])
 
 if __name__ == "__main__":
     conn = DBConnector()
