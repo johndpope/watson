@@ -56,9 +56,9 @@ def search(request):
 
     starttime = None
     endtime = None
-    if query == 'last weekend':
-        starttime = datetime(2014, 1, 17)
-        endtime = datetime(2014, 1, 24)
+    if query == 'two weeks ago':
+        starttime = datetime(2014, 1, 10)
+        endtime = datetime(2014, 1, 16)
 
     images = [x for x in conn.get_images_detailed(user_id, start_time=starttime, end_time=endtime, coords=[lat,lng])]
 

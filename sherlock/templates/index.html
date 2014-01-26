@@ -38,7 +38,9 @@ watson.controller('WatsonCtrl', function ($scope, $http) {
     $scope.error;
     
     $scope.loadMore = function() {
-        console.log('load more');
+        var limit = max += pageSize;
+        limit = Math.min($scope.allResults.length, limit);
+        $scope.results = $scope.allResults.slice(0, limit);
     };
 
     function search(query) {
@@ -46,7 +48,7 @@ watson.controller('WatsonCtrl', function ($scope, $http) {
 	    .success(function (data, status, headers, config) {
 		$scope.allResults = data;
 		console.log(data);
-		$scope.results = $scope.allResults.slice(0, max+=pageSize);
+        $scope.loadMore();
 	    }).error(function (data, status, headers, config) {
 		$scope.error = "Failed to load images";
 	    }).finally(function () {
@@ -90,13 +92,13 @@ watson.controller('WatsonCtrl', function ($scope, $http) {
         <div class="spinner"></div>
     </div>
     <div id="columns" ng-show="results.length !== 0">
-        <div class="pin" ng-repeat="result in results"><img src='/thumbnails/[[uid]][[result.filename.split("/").pop()]]'/></div>
+        <div class="pin" ng-repeat="result in results"><img src='https://watson.codef.in/thumbnails/[[uid]][[result.filename.split("/").pop()]]'/></div>
     </div>
     <div class="flash" ng-show="results.length === 0 && !isLoading">No results</div>
 </div>
 
 <div id="footer" class="text-center">
-    <a id="load-more" class="btn btn-sm" ng-click="loadMore()" ng-show="allResults.length > data.length">Load more</a>
+    <a id="load-more" class="btn btn-sm" ng-click="loadMore()" ng-show="allResults.length > results.length">Load more</a>
 </div>
 </body>
 </html>
