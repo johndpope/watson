@@ -7,6 +7,7 @@ import tempfile
 import datetime
 import json
 import EXIF
+import dateutil.parser
 from db import DBConnector
 
 conn = DBConnector()
@@ -45,11 +46,12 @@ for user in users:
         temp.write(f.read())
         temp.close()
 
-        exif_data = EXIF.process_file(open(temp))
-        temp.close()
+	ff = open(temp.name)
+        exif_data = EXIF.process_file(ff)
+	ff.close()
 
         if exif_data.get('Image DateTime',None) is not None:
-              timestamp = datetime.datetime(exif_data['Image DateTime'].values)
+              timestamp = dateutil.parser.parse(exif_data['Image DateTime'].values)
         else:
               timestamp = datetime.datetime.today()
 
@@ -80,7 +82,7 @@ for user in users:
 
         image_quality = float(p.match(output).group(1))
 
-        images = conn.get_image(user_id=user['_id'], is_duplicate=False)
+        images = conn.get_images(user_id=user['_id'], is_duplicate=False)
         
         # conn.insert_image(
         for image in images:
