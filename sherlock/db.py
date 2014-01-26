@@ -37,7 +37,7 @@ class DBConnector():
     def get_all_users(self):
         return client.users.find({})
 
-    def insert_image(self, user_id, filename, coords, external_ref, hash, timestamp, quality, is_duplicate=False,is_deleted=False):
+    def insert_image(self, user_id, filename, coords, external_ref, hash, timestamp, group, quality, is_duplicate=False, is_deleted=False):
         if not isinstance(timestamp, datetime.datetime):
             raise RuntimeError
         client.images.ensure_index([("geo", GEO2D)])
@@ -48,13 +48,14 @@ class DBConnector():
                                       "external_ref": external_ref,
                                       "hash": str(hash),
                                       "timestamp": timestamp,
+                                      "group": group,
                                       "quality": quality,
                                       "is_duplicate": is_duplicate,
-				      "is_deleted":is_deleted
+				                      "is_deleted":is_deleted
                                   }, upsert=True)
         return id
 
-    def get_images(self, user_id=None, hash=None,is_duplicate=False):
+    def get_images(self, user_id=None, hash=None, group=None is_duplicate=False):
         if user_id is None and hash is None:
             raise RuntimeError
         srch = {"is_duplicate": is_duplicate}
@@ -62,6 +63,8 @@ class DBConnector():
             srch["user_id"] = user_id
         if hash is not None:
             srch["hash"] = hash
+        if group is not None:
+            srch["group"] = group
 
         return client.images.find(srch)
 

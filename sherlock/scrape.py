@@ -11,7 +11,7 @@ import dateutil.parser
 from db import DBConnector
 
 conn = DBConnector()
-group = conn.get_highest_group()
+highest_group = conn.get_highest_group()
 users = [x for x in conn.get_all_users()]
 
 
@@ -47,9 +47,9 @@ for user in users:
         temp.write(f.read())
         temp.close()
 
-	ff = open(temp.name)
+	    ff = open(temp.name)
         exif_data = EXIF.process_file(ff)
-	ff.close()
+	    ff.close()
 
         if exif_data.get('Image DateTime',None) is not None:
               timestamp = dateutil.parser.parse(exif_data['Image DateTime'].values)
@@ -85,17 +85,22 @@ for user in users:
 
         images = conn.get_images(user_id=user['_id'], is_duplicate=False)
         
-	is_duplicate = False
+	    is_duplicate = False
+        group = 1
         for image in images:
             if pHash.hamming_distance(hash1, long(image['hash'])) < 10:
+                group = image['group']
             	if image_quality < image['quality']:
-		    is_duplicate = True 
-		    break
-		elif not image['is_duplicate']:
-		    conn.mark_image_duplicate(image["_id"])
-	            break
+		            is_duplicate = True 
+		            break
+		        elif not image['is_duplicate']:
+		            conn.mark_image_duplicate(image["_id"])
+	                break
+            else:
+                highest_group += 1
+                group = highest_group
 	
-	conn.insert_image(user["_id"],data["path"],[latitude, longitude],"xx",hash1,timestamp,image_quality,is_duplicate=is_duplicate)
+	    conn.insert_image(user["_id"],data["path"],[latitude, longitude],"xx",hash1,timestamp,group,image_quality,is_duplicate=is_duplicate)
         os.unlink(temp.name)
         # download image
         # parse out EXIF data
