@@ -26,7 +26,7 @@ def get_dropbox_auth_flow(web_app_session):
 def auth(request):
     if 'user_id' in request.session:
         print request.session['user_id']
-        return index(request)
+	return index(request) 
     return redirect(get_dropbox_auth_flow(request.session).start())
 
 def index(request):
@@ -86,7 +86,7 @@ def dropbox_auth_finish(request):
         conn.add_user(user_id, access_token)
 
         request.session['user_id'] = user_id
-        return render_to_response('index.html')
+	return redirect('/')
     except DropboxOAuth2Flow.BadRequestException, e:
         http_status(400)
     except DropboxOAuth2Flow.BadStateException, e:
