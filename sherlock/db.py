@@ -67,7 +67,7 @@ class DBConnector():
 	if start_time and end_time:
 	    search_dict["timestamp"] = {"$gt":start_time,"$lt":end_time}
 
-	search_dict['quality'] = {"$gt": 0.8}
+	search_dict['quality'] = {"$gt": 0.6}
 	 
 	return client.images.find(search_dict)
 

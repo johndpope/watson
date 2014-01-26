@@ -7,6 +7,8 @@ import tempfile
 import datetime
 import json
 import EXIF
+from PIL import Image
+import StringIO
 import dateutil.parser
 from db import DBConnector
 
@@ -14,7 +16,18 @@ conn = DBConnector()
 highest_group = conn.get_highest_group()
 users = [x for x in conn.get_all_users()]
 
+IMAGE_WIDTH = 200
 
+def save_and_resize_image(user_name,file_name,local_name):
+    img = Image.open(local_name)
+    width, height = img.size
+    ratio = float(height)/width
+        
+    rez = img.resize((IMAGE_WIDTH,(int(IMAGE_WIDTH*ratio))), Image.ANTIALIAS)
+    new_file_name = "media/thumbnails/" + str(user_name) + file_name.split("/")[-1]
+    rez.save(new_file_name,"JPEG")
+
+    
 for user in users:
     access_token = user['access_token']
     if access_token is None:
@@ -46,7 +59,8 @@ for user in users:
         temp = tempfile.NamedTemporaryFile(delete=False)
         temp.write(f.read())
         temp.close()
-
+	
+	save_and_resize_image(user["_id"],data['path'],temp.name)
 	ff = open(temp.name)
         exif_data = EXIF.process_file(ff)
 	ff.close()
@@ -54,20 +68,20 @@ for user in users:
         if exif_data.get('Image DateTime',None) is not None:
               timestamp = dateutil.parser.parse(exif_data['Image DateTime'].values)
         else:
-              timestamp = datetime.datetime.today()
+              timestamp = datetime.datetime(1970,1,1)
 
         if exif_data.has_key('GPS GPSLongitude') and exif_data.has_key('GPS GPSLatitude'):
-            latitude = exif_data['GPS GPSLatitude']
-            longitude = exif_data['GPS GPSLongitude']
+            latitude = exif_data['GPS GPSLatitude'].values
+            longitude = exif_data['GPS GPSLongitude'].values
 
             latRef = exif_data['GPS GPSLatitudeRef'].values
             longRef = exif_data['GPS GPSLongitudeRef'].values
 
-            latitude = latitude[0] + latitude[1]/60
+            latitude = float(str(latitude[0])) + float(str(latitude[1]))/60
             if latRef == 'S':
                 latitude *= -1
 
-            longitude = longitude[0] + longitude[1]/60
+            longitude = float(str(longitude[0])) + float(str(longitude[1]))/60
             if longRef == 'W':
                 longitude *= -1
 
@@ -89,7 +103,7 @@ for user in users:
         group = 1
 	is_unique = True
         for image in images:
-            if pHash.hamming_distance(hash1, long(image['hash'])) < 10:
+            if pHash.hamming_distance(hash1, long(image['hash'])) < 15:
 		is_unique = False
             	if image_quality < image['quality']:
                     group = image['group']
