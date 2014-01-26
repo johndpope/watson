@@ -9,7 +9,9 @@ import time
 import urllib2
 import base64
 from bson import json_util
-
+import re
+from geopy import geocoders
+from datetime import datetime
 
 APP_KEY = 'nice try'
 APP_SECRET = 'not happening'
@@ -36,16 +38,28 @@ def index(request):
 
 def search(request):
     user_id = request.session['user_id']
+    user = conn.get_user(user_id)
+    user_id = user['_id']
+    query = request.REQUEST['query']
     	
-    gh = geocoders.GeoNames(username="watsonht")
-    location = gh.geocode(request["query"])
+    matches = re.search('near (.*)', query)
+    lat = None
+    lng = None
+    if matches is not None:
+	gh = geocoders.GeoNames(username="watsonht")
+	location_string = matches.group(1)
+	location = gh.geocode(location_string)
+	lat = location[1][0]
+	lng = location[1][1]
     
-    if location:
-    	images = [x for x in conn.find_images_near(user_id,coords=[location[1][0],location[1][1]])]
-    else:
-	images = [x for x in conn.get_images(user_id)]
+    matches = re.search('last weekend', query)
+    starttime = None
+    endtime = None
+    if query == 'last weekend':
+	starttime = datetime(2014, 1, 17)
+	endtime = datetime(2014, 1, 20)
 	
-
+    images = [x for x in conn.get_images_detailed(user_id, start_time=starttime, end_time=endtime, coords=[lat,lng])]
     return HttpResponse(json.dumps(images, default=json_util.default), content_type="application/json")
 
 

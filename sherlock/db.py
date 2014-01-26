@@ -1,6 +1,7 @@
 from pymongo import MongoClient, GEO2D
 import cfg
 import datetime
+from bson.son import SON
 
 client = MongoClient(cfg.DB_CONF["host"], cfg.DB_CONF["port"]).watson
 
@@ -56,6 +57,20 @@ class DBConnector():
                                   }, upsert=True)
         return id
 
+
+    def get_images_detailed(self, user_id, start_time=None,end_time=None, coords = None):
+
+        search_dict = {"user_id":user_id,"is_duplicate":False}
+        if coords and coords[0] and coords[1]:
+            search_dict["geo"] = SON([("$near",coords),("$maxDistance",0.5)]) 
+
+	if start_time and end_time:
+	    search_dict["timestamp"] = {"$gt":start_time,"$lt":end_time}
+
+	search_dict['quality'] = {"$gt": 0.8}
+	 
+	return client.images.find(search_dict)
+
     def get_images(self, user_id=None, hash=None, group=None, is_duplicate=False):
         if user_id is None and hash is None:
             raise RuntimeError
@@ -82,10 +97,7 @@ class DBConnector():
             raise RuntimeError
         cur = client.images.find({
             "user_id": user_id,
-	    "is_duplicate":False,
-            "geo": {"$geoWithin": {
-                "$centerSphere": [coords, distance]
-            }}
+            "is_duplicate":False,
         })
         return cur
 

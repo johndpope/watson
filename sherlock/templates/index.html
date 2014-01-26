@@ -33,13 +33,24 @@ watson.controller('WatsonCtrl', function ($scope, $http) {
     var pageSize = 10;
     var max = 0;
     $scope.allResults = [];
-    $scope.moveAvailable = false;
     $scope.search = {};
     $scope.error;
     
     $scope.loadMore = function() {
         console.log('load more');
     };
+
+    function search(query) {
+	    $http.get("/api/search?query=" + encodeURIComponent(query), {})
+	    .success(function (data, status, headers, config) {
+		$scope.allResults = data;
+		$scope.results = $scope.allResults.slice(0, max+=pageSize);
+	    }).error(function (data, status, headers, config) {
+		$scope.error = "Failed to load images";
+	    }).finally(function () {
+		$scope.isLoading = false;
+	    });
+    }
     
     $scope.keyup = collateTimeout((function () {
         var previousQuery;
@@ -51,17 +62,11 @@ watson.controller('WatsonCtrl', function ($scope, $http) {
             $scope.results = [];
             $scope.moveAvailable = false;
             $scope.error = null;
-            $http.get("/api/search", {"query": query})
-            .success(function (data, status, headers, config) {
-                $scope.allResults = data;
-                $scope.results = $scope.allResults.slice(0, max+=pageSize);
-            }).error(function (data, status, headers, config) {
-                $scope.error = "Failed to load images";
-            }).finally(function () {
-                $scope.isLoading = false;
-            });
+	    search(query);
         };
     }()), 400);
+    
+    search();
 });
     
     </script>
@@ -72,7 +77,7 @@ watson.controller('WatsonCtrl', function ($scope, $http) {
     <div id="logo" class="h2">watson <span class="subheader">Your clever photo butler</span></div>
     <div id="user-info" class="pull-right"><br>{{ user.display_name }}</div>
     <div class="text-center">
-        <input type="text" name="query" id="query" placeholder="e.g. santa monica" ng-model="search.query" ng-keyup="keyup()">
+        <input type="text" name="query" id="query" placeholder="e.g. near santa monica" ng-model="search.query" ng-keyup="keyup()" ng-init="preload()">
     </div>
 </header>
 
@@ -88,21 +93,7 @@ watson.controller('WatsonCtrl', function ($scope, $http) {
 </div>
 
 <div id="footer" class="text-center">
-    <a id="load-more" class="btn btn-sm" ng-click="loadMore()" ng-show="moreAvailable">Load more</a>
+    <a id="load-more" class="btn btn-sm" ng-click="loadMore()" ng-show="$scope.allResults.length > $scope.data.length">Load more</a>
 </div>
-
-<script type="text/javscript">
-$(function () {
-
-
-$("#query").on('keyup', );
-
-$("#load-more").on('click', function () {
-    loadMore();
-});
-
-});
-
-</script>
 </body>
 </html>
