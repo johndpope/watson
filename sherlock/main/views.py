@@ -8,7 +8,7 @@ import json
 import time
 import urllib2
 import base64
-
+from bson import json_util
 
 
 APP_KEY = 'nice try'
@@ -35,30 +35,22 @@ def index(request):
     return render_to_response('index.html', {"user": info})
 
 def search(request):
-    time.sleep(1);
-    response_data = [{
-        "name": "owl",
-        "image": get_image('http://i.imgur.com/HTYTD3Y.jpg')
-    }, {
-        "name": "trees",
-        "image": get_image('http://i.imgur.com/RLJbxDS.jpg')
-    }, {
-        "name": "dog",
-        "image": get_image('http://i.imgur.com/r0YeLYV.jpg')
-    }, {
-        "name": "grand central",
-        "image": get_image('http://i.imgur.com/ao7XZj4.jpg')
-    }, {
-        "name": "dragon",
-        "image": get_image('http://i.imgur.com/SEs8Xky.jpg')
-    }, {
-        "name": "frozen truck",
-        "image": get_image('http://i.imgur.com/OYsHKlH.jpg')
-    }];
-    return HttpResponse(json.dumps(response_data), content_type="application/json")
+    user_id = request.session['user_id']
+    images = [x for x in conn.get_images(user_id)]
+    return HttpResponse(json.dumps(images, default=json_util.default), content_type="application/json")
 
-def get_image(url):
-    return base64.b64encode(urllib2.urlopen(url).read())
+
+def get_image(request):
+    print request
+    path = request.REQUEST['path']
+    user_id = request.session['user_id']
+    user = conn.get_user(user_id)
+    client = dropbox.client.DropboxClient(user['access_token'])
+    try:
+        file = client.get_file(path).read()
+    except Exception, e:
+        file = ''
+    return HttpResponse(file, content_type="image/jpeg")
 
 def dropbox_auth_finish(request):
     try:
