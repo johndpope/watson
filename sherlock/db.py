@@ -5,6 +5,7 @@ import datetime
 client = MongoClient(cfg.DB_CONF["host"], cfg.DB_CONF["port"]).watson
 
 
+
 class DBConnector():
     def __init__(self):
         pass
@@ -55,7 +56,7 @@ class DBConnector():
                                   }, upsert=True)
         return id
 
-    def get_images(self, user_id=None, hash=None, group=None is_duplicate=False):
+    def get_images(self, user_id=None, hash=None, group=None, is_duplicate=False):
         if user_id is None and hash is None:
             raise RuntimeError
         srch = {"is_duplicate": is_duplicate}
@@ -71,12 +72,17 @@ class DBConnector():
     def mark_image_duplicate(self, image_id):
         client.images.update({"_id": image_id}, {"$set": {"is_duplicate": True}})
 
+	
+    def find_images_since(self, user_id, from_date, to_date):
+	client.images.find({"user_id":user_id,
+			    "timestamp":{"$gt":from_date,"$lt":to_date}})
 
     def find_images_near(self, user_id, coords=[0, 0], distance=0):
         if len(coords) != 2:
             raise RuntimeError
         cur = client.images.find({
             "user_id": user_id,
+	    "is_duplicate":False,
             "geo": {"$geoWithin": {
                 "$centerSphere": [coords, distance]
             }}

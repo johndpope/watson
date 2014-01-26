@@ -17,7 +17,7 @@ APP_SECRET = 'not happening'
 conn = DBConnector()
 
 def get_dropbox_auth_flow(web_app_session):
-    redirect_uri = "https://watson.local.codef.in/auth_finish"
+    redirect_uri = "https://watson.codef.in/auth_finish"
     return DropboxOAuth2Flow(APP_KEY, APP_SECRET, redirect_uri,
         web_app_session, "dropbox-auth-csrf-token")
 
@@ -36,7 +36,16 @@ def index(request):
 
 def search(request):
     user_id = request.session['user_id']
-    images = [x for x in conn.get_images(user_id)]
+    	
+    gh = geocoders.GeoNames(username="watsonht")
+    location = gh.geocode(request["query"])
+    
+    if location:
+    	images = [x for x in conn.find_images_near(user_id,coords=[location[1][0],location[1][1]])]
+    else:
+	images = [x for x in conn.get_images(user_id)]
+	
+
     return HttpResponse(json.dumps(images, default=json_util.default), content_type="application/json")
 
 
