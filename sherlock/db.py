@@ -93,7 +93,11 @@ class DBConnector():
         return client.images.find()
 
     def get_highest_group(self):
-        return int(client.images.find({}).sort("group", -1).limit(1)[0]['group'])
+	result = [x for x in client.images.find()]
+        if len(result) == 0:
+            return 0
+        else:	
+            return int(client.images.find({}).sort("group", -1).limit(1)[0]['group'])
 
 if __name__ == "__main__":
     conn = DBConnector()

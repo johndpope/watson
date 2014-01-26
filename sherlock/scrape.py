@@ -47,9 +47,9 @@ for user in users:
         temp.write(f.read())
         temp.close()
 
-	    ff = open(temp.name)
+	ff = open(temp.name)
         exif_data = EXIF.process_file(ff)
-	    ff.close()
+	ff.close()
 
         if exif_data.get('Image DateTime',None) is not None:
               timestamp = dateutil.parser.parse(exif_data['Image DateTime'].values)
@@ -85,22 +85,24 @@ for user in users:
 
         images = conn.get_images(user_id=user['_id'], is_duplicate=False)
         
-	    is_duplicate = False
+	is_duplicate = False
         group = 1
+	is_unique = True
         for image in images:
             if pHash.hamming_distance(hash1, long(image['hash'])) < 10:
-                group = image['group']
+		is_unique = False
             	if image_quality < image['quality']:
-		            is_duplicate = True 
-		            break
-		        elif not image['is_duplicate']:
-		            conn.mark_image_duplicate(image["_id"])
-	                break
-            else:
-                highest_group += 1
-                group = highest_group
-	
-	    conn.insert_image(user["_id"],data["path"],[latitude, longitude],"xx",hash1,timestamp,group,image_quality,is_duplicate=is_duplicate)
+                    group = image['group']
+		    is_duplicate = True 
+		    break
+		elif not image['is_duplicate']:
+                    group = image['group']
+		    conn.mark_image_duplicate(image["_id"])
+	            break
+	if is_unique:
+		highest_group += 1
+		group = highest_group	
+	conn.insert_image(user["_id"],data["path"],[latitude, longitude],"xx",hash1,timestamp,group,image_quality,is_duplicate=is_duplicate)
         os.unlink(temp.name)
         # download image
         # parse out EXIF data
