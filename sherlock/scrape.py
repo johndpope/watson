@@ -16,7 +16,7 @@ conn = DBConnector()
 highest_group = conn.get_highest_group()
 users = [x for x in conn.get_all_users()]
 
-IMAGE_WIDTH = 200
+IMAGE_WIDTH = 350
 
 def save_and_resize_image(user_name,file_name,local_name):
     img = Image.open(local_name)
@@ -42,7 +42,7 @@ for user in users:
         continue
     
     delta = client.delta(user['cursor'])
-    #conn.update_cursor(user['uid'], delta['cursor'])
+    conn.update_cursor(user['_id'], delta['cursor'])
     
     for entry in delta['entries']:
         name = entry[0]
@@ -54,6 +54,9 @@ for user in users:
         if not data['path'].endswith('.jpg'):
             continue
 
+	
+	if not data['path'].startswith("/Camera Uploads"):	
+	    continue
 
         f, metadata = client.get_file_and_metadata(data['path'])
         temp = tempfile.NamedTemporaryFile(delete=False)

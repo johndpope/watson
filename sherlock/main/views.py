@@ -33,8 +33,9 @@ def index(request):
     user = conn.get_user(request.session['user_id'])
     client = dropbox.client.DropboxClient(user['access_token'])
     info = client.account_info()
+    print 'user', user['_id']
     print info
-    return render_to_response('index.html', {"user": info})
+    return render_to_response('index.html', {"user": info, "uid": user['_id']})
 
 def search(request):
     user_id = request.session['user_id']

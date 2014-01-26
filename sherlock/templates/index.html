@@ -28,6 +28,7 @@ watson.config(function($interpolateProvider) {
 });
 
 watson.controller('WatsonCtrl', function ($scope, $http) {
+    $scope.uid = '{{ uid }}';
     $scope.isLoading = false;
     $scope.results = [];
     var pageSize = 10;
@@ -44,6 +45,7 @@ watson.controller('WatsonCtrl', function ($scope, $http) {
 	    $http.get("/api/search?query=" + encodeURIComponent(query), {})
 	    .success(function (data, status, headers, config) {
 		$scope.allResults = data;
+		console.log(data);
 		$scope.results = $scope.allResults.slice(0, max+=pageSize);
 	    }).error(function (data, status, headers, config) {
 		$scope.error = "Failed to load images";
@@ -88,12 +90,13 @@ watson.controller('WatsonCtrl', function ($scope, $http) {
         <div class="spinner"></div>
     </div>
     <div id="columns" ng-show="results.length !== 0">
-        <div class="pin" ng-repeat="result in results"><img src='/api/get_image?path=[[result.filename]]'/></div>
+        <div class="pin" ng-repeat="result in results"><img src='/thumbnails/[[uid]][[result.filename.split("/").pop()]]'/></div>
     </div>
+    <div class="flash" ng-show="results.length === 0 && !isLoading">No results</div>
 </div>
 
 <div id="footer" class="text-center">
-    <a id="load-more" class="btn btn-sm" ng-click="loadMore()" ng-show="$scope.allResults.length > $scope.data.length">Load more</a>
+    <a id="load-more" class="btn btn-sm" ng-click="loadMore()" ng-show="allResults.length > data.length">Load more</a>
 </div>
 </body>
 </html>
