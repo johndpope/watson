@@ -84,20 +84,17 @@ for user in users:
 
         images = conn.get_images(user_id=user['_id'], is_duplicate=False)
         
-        # conn.insert_image(
+	is_duplicate = False
         for image in images:
-            # different shit
-            if pHash.hamming_distance(hash1, image['hash']) > 10:
-                print hash1
-            #    conn.insert_image(# 
-            # same shit but worse quality
-            elif image_quality < image['quality']:
-            #    conn.insert_image(#
-                print 'test1'
-            else:
-                print 'test2'
-            #    conn.isnert_image(#
-
+            if pHash.hamming_distance(hash1, long(image['hash'])) < 10:
+            	if image_quality < image['quality']:
+		    is_duplicate = True 
+		    break
+		elif not image['is_duplicate']:
+		    conn.mark_image_duplicate(image["_id"])
+	            break
+	
+	conn.insert_image(user["_id"],data["path"],[latitude, longitude],"xx",hash1,timestamp,image_quality,is_duplicate=is_duplicate)
         os.unlink(temp.name)
         # download image
         # parse out EXIF data
