@@ -7,6 +7,7 @@ import tempfile
 import datetime
 import json
 import EXIF
+import dateutil.parser
 from db import DBConnector
 
 conn = DBConnector()
@@ -46,11 +47,12 @@ for user in users:
         temp.write(f.read())
         temp.close()
 
-        exif_data = EXIF.process_file(open(temp))
-        temp.close()
+	ff = open(temp.name)
+        exif_data = EXIF.process_file(ff)
+	ff.close()
 
         if exif_data.get('Image DateTime',None) is not None:
-              timestamp = datetime.datetime(exif_data['Image DateTime'].values)
+              timestamp = dateutil.parser.parse(exif_data['Image DateTime'].values)
         else:
               timestamp = datetime.datetime.today()
 
@@ -81,22 +83,19 @@ for user in users:
 
         image_quality = float(p.match(output).group(1))
 
-        images = conn.get_image(user_id=user['_id'], is_duplicate=False)
+        images = conn.get_images(user_id=user['_id'], is_duplicate=False)
         
-        # conn.insert_image(
+	is_duplicate = False
         for image in images:
-            # different shit
-            if pHash.hamming_distance(hash1, image['hash']) > 10:
-                print hash1
-            #    conn.insert_image(# 
-            # same shit but worse quality
-            elif image_quality < image['quality']:
-            #    conn.insert_image(#
-                print 'test1'
-            else:
-                print 'test2'
-            #    conn.isnert_image(#
-
+            if pHash.hamming_distance(hash1, long(image['hash'])) < 10:
+            	if image_quality < image['quality']:
+		    is_duplicate = True 
+		    break
+		elif not image['is_duplicate']:
+		    conn.mark_image_duplicate(image["_id"])
+	            break
+	
+	conn.insert_image(user["_id"],data["path"],[latitude, longitude],"xx",hash1,timestamp,image_quality,is_duplicate=is_duplicate)
         os.unlink(temp.name)
         # download image
         # parse out EXIF data
