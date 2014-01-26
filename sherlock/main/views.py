@@ -65,12 +65,12 @@ def dropbox_auth_finish(request):
     try:
         access_token, user_id, url_state = \
             get_dropbox_auth_flow(request.session).finish(request.GET)
-        
+
         conn = DBConnector()
         conn.add_user(user_id, access_token)
-        
+
         request.session['user_id'] = user_id
-        return render_to_response('index.html') 
+        return render_to_response('index.html')
     except DropboxOAuth2Flow.BadRequestException, e:
         http_status(400)
     except DropboxOAuth2Flow.BadStateException, e:

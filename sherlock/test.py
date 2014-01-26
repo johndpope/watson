@@ -1,10 +1,10 @@
 import dropbox
+import os
+import tempfile
+import json
+from db import DBConnector
 
-# Get your app key and secret from the Dropbox developer website
-app_key = 'nice try'
-app_secret = 'not happening'
+conn = DBConnector()
+images = [x for x in conn.get_images_all()]
 
-access_token = 'safety first'
-client = dropbox.client.DropboxClient(access_token)
-print 'linked account: ', client.account_info()
-print access_token
+print images

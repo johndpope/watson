@@ -1,144 +1,105 @@
-<html>
+<html ng-app="watson">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <link href='http://fonts.googleapis.com/css?family=Muli' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Muli' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="/css/application.css">
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.10/angular.min.js"></script>
+    <script type="text/javascript">
+
+function collateTimeout(callback, timeout) {
+    var timeoutId;
+    return function () {
+        if (timeoutId != null) {
+            clearTimeout(timeoutId);
+        }
+        timeoutId = setTimeout(function () {
+            callback();
+        }, timeout);
+    };
+}
+
+var watson = angular.module('watson', []);
+
+watson.config(function($interpolateProvider) {
+    $interpolateProvider.startSymbol('[[');
+    $interpolateProvider.endSymbol(']]');
+});
+
+watson.controller('WatsonCtrl', function ($scope, $http) {
+    $scope.isLoading = false;
+    $scope.results = [];
+    var pageSize = 10;
+    var max = 0;
+    $scope.allResults = [];
+    $scope.moveAvailable = false;
+    $scope.search = {};
+    $scope.error;
+    
+    $scope.loadMore = function() {
+        console.log('load more');
+    };
+    
+    $scope.keyup = collateTimeout((function () {
+        var previousQuery;
+        return function () {
+            var query = $scope.search.query.trim();
+            if (!query || query === previousQuery) return;
+            previousQuery = query;
+            $scope.isLoading = true;
+            $scope.results = [];
+            $scope.moveAvailable = false;
+            $scope.error = null;
+            $http.get("/api/search", {"query": query})
+            .success(function (data, status, headers, config) {
+                $scope.allResults = data;
+                $scope.results = $scope.allResults.slice(0, max+=pageSize);
+            }).error(function (data, status, headers, config) {
+                $scope.error = "Failed to load images";
+            }).finally(function () {
+                $scope.isLoading = false;
+            });
+        };
+    }()), 400);
+});
+    
+    </script>
 </head>
-<body>
+<body ng-controller="WatsonCtrl">
 
 <header id="header">
     <div id="logo" class="h2">watson <span class="subheader">Your clever photo butler</span></div>
     <div id="user-info" class="pull-right"><br>{{ user.display_name }}</div>
     <div class="text-center">
-        <input type="text" name="query" id="query" placeholder="e.g. santa monica">
+        <input type="text" name="query" id="query" placeholder="e.g. santa monica" ng-model="search.query" ng-keyup="keyup()">
     </div>
 </header>
 
 <div id="content">
-    <p></p>
-</div>
-
-<div id="columns">
-    <div class="pin"><img src='http://i.imgur.com/RLJbxDS.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/SEs8Xky.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/r0YeLYV.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/ao7XZj4.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/OYsHKlH.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/RLJbxDS.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/SEs8Xky.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/r0YeLYV.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/ao7XZj4.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/OYsHKlH.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/RLJbxDS.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/SEs8Xky.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/r0YeLYV.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/ao7XZj4.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/OYsHKlH.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/RLJbxDS.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/SEs8Xky.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/r0YeLYV.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/ao7XZj4.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/OYsHKlH.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/RLJbxDS.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/SEs8Xky.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/r0YeLYV.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/ao7XZj4.jpg'/></div>
-    <div class="pin"><img src='http://i.imgur.com/OYsHKlH.jpg'/></div>
-</div>
-
-<script type="text/template" id="flash-error">
-    <div class="flash flash-error on-error">{message}</div>
-</script>
-<script type="text/template" id="loading-screen">
-    <div id="loading-layover on-loading">
+    <div class="flash flash-error on-error" ng-show="error">[[error.message]]</div>
+    <div id="loading-layover on-loading" ng-show="isLoading">
         <h4 class="text-center">Making history</h4>
         <div class="spinner"></div>
     </div>
-</script>
-<script type="text/template" id="result">
-<img src="data:image/jpeg;base64,{image}" />
-</script>
-<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.0.js"></script>
-<script type="text/javascript">
+    <div id="columns" ng-show="results.length !== 0">
+        <div class="pin" ng-repeat="result in results"><img src='/api/get_image?path=[[result.filename]]'/></div>
+    </div>
+</div>
+
+<div id="footer" class="text-center">
+    <a id="load-more" class="btn btn-sm" ng-click="loadMore()" ng-show="moreAvailable">Load more</a>
+</div>
+
+<script type="text/javscript">
 $(function () {
 
-function collateTimeout(callback, timeout) {
-    var timeoutId;
-    return function (e) {
-        if (timeoutId != null) {
-            clearTimeout(timeoutId);
-        }
-        timeoutId = setTimeout(function () {
-            callback(e.target);
-        }, timeout);
-    };
-}
 
-var template = {
-    get: function (name) {
-        return $('script#' + name).text()
-    },
-    inject: function (content, context) {
-        var params = content.match(/\{([^\{\}]*)\}/g);
-        params.forEach(function (param) {
-            key = param.replace("{", "").replace("}", "");
-            content = content.replace(param, context[key]);
-        });
-        return content;
-    },
-    yes: function (name, context) {
-        return this.inject(this.get(name), context);
-    }
-};
+$("#query").on('keyup', );
 
-function Pending() {};
-function Response(data) {
-    this.data = data;
-};
-
-var render = {
-    do: function (context) {
-        this.place(this[context.constructor.name](context));
-    },
-    place: function (html) {
-        $('#content').addClass('fly-away');
-        setTimeout(function () {
-            $('#content').html(html).removeClass('fly-away');
-        }, 300);
-    },
-    Pending: function (context) {
-        return template.get('loading-screen');
-    },
-    Response: function (context) {
-        var response = '';
-        context.data.forEach(function (result) {
-            response += template.yes('result', result);
-        });
-        return response;
-    },
-    Error: function (context) {
-        return template.yes('flash-error', context);
-    }
-};
-
-$("#query").on('keyup', collateTimeout((function () {
-    var previousQuery;
-    return function (el) {
-        var query = $(el).val().trim();
-        if (!query || query === previousQuery) return;
-        previousQuery = query;
-        render.do(new Pending())
-        var jqxhr = $.get("/api/search", {"query": query}, function (data, status, jqXHR) {}, 'json')
-        .done(function (data) {
-            render.do(new Response(data));
-        })
-        .fail(function (data) {
-            render.do(new Error("Failed to connect"));
-        });
-    };
-}()), 400));
+$("#load-more").on('click', function () {
+    loadMore();
+});
 
 });
 
