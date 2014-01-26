@@ -1,15 +1,17 @@
 import commands
 import re
-from PIL import Image
 import dropbox
 import pHash
 import os
 import tempfile
+import datetime
 import json
+import EXIF
 from db import DBConnector
 
 conn = DBConnector()
 users = [x for x in conn.get_all_users()]
+
 
 for user in users:
     access_token = user['access_token']
@@ -37,23 +39,42 @@ for user in users:
         if not data['path'].endswith('.jpg'):
             continue
 
-        print name
-        print data
 
-        
         f, metadata = client.get_file_and_metadata(data['path'])
         temp = tempfile.NamedTemporaryFile(delete=False)
         temp.write(f.read())
         temp.close()
-        
-	print temp.name
-        img = Image.open(temp.name)
-        exif_data = img._getexif()
-        print exif_data
-        
+
+        exif_data = EXIF.process_file(open(temp))
+        temp.close()
+
+        if exif_data.get('Image DateTime',None) is not None:
+              timestamp = datetime.datetime(exif_data['Image DateTime'].values)
+        else:
+              timestamp = datetime.datetime.today()
+
+        if exif_data.has_key('GPS GPSLongitude') and exif_data.has_key('GPS GPSLatitude'):
+            latitude = exif_data['GPS GPSLatitude']
+            longitude = exif_data['GPS GPSLongitude']
+
+            latRef = exif_data['GPS GPSLatitudeRef'].values
+            longRef = exif_data['GPS GPSLongitudeRef'].values
+
+            latitude = latitude[0] + latitude[1]/60
+            if latRef == 'S':
+                latitude *= -1
+
+            longitude = longitude[0] + longitude[1]/60
+            if longRef == 'W':
+                longitude *= -1
+
+        else:
+            latitude = 0
+            longitude = 0
+
         hash1 = pHash.imagehash(temp.name)
 	
-	command = 'blur-detection ' + temp.name
+        command = 'blur-detection ' + temp.name
         output = commands.getoutput(command)
         p=re.compile('.*density: (\d+\.\d+)')
 
