@@ -42,25 +42,26 @@ def search(request):
     user = conn.get_user(user_id)
     user_id = user['_id']
     query = request.REQUEST['query']
-    	
+
     matches = re.search('near (.*)', query)
     lat = None
     lng = None
     if matches is not None:
-	gh = geocoders.GeoNames(username="watsonht")
-	location_string = matches.group(1)
-	location = gh.geocode(location_string)
-	lat = location[1][0]
-	lng = location[1][1]
-    
-    matches = re.search('last weekend', query)
+        gh = geocoders.GeoNames(username="watsonht")
+        location_string = matches.group(1)
+        location = gh.geocode(location_string)
+        if location:
+            lat = location[1][0]
+            lng = location[1][1]
+
     starttime = None
     endtime = None
     if query == 'last weekend':
-	starttime = datetime(2014, 1, 17)
-	endtime = datetime(2014, 1, 20)
-	
+        starttime = datetime(2014, 1, 17)
+        endtime = datetime(2014, 1, 24)
+
     images = [x for x in conn.get_images_detailed(user_id, start_time=starttime, end_time=endtime, coords=[lat,lng])]
+
     return HttpResponse(json.dumps(images, default=json_util.default), content_type="application/json")
 
 

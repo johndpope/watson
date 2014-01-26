@@ -62,14 +62,14 @@ class DBConnector():
 
         search_dict = {"user_id":user_id,"is_duplicate":False}
         if coords and coords[0] and coords[1]:
-            search_dict["geo"] = SON([("$near",coords),("$maxDistance",0.5)]) 
+            search_dict["geo"] = SON([("$near",coords),("$maxDistance",0.5)])
 
-	if start_time and end_time:
-	    search_dict["timestamp"] = {"$gt":start_time,"$lt":end_time}
+        if start_time and end_time:
+            search_dict["timestamp"] = {"$gt":start_time,"$lt":end_time}
 
-	search_dict['quality'] = {"$gt": 0.6}
-	 
-	return client.images.find(search_dict)
+        search_dict['quality'] = {"$gt": 0.6}
+
+        return client.images.find(search_dict)
 
     def get_images(self, user_id=None, hash=None, group=None, is_duplicate=False):
         if user_id is None and hash is None:
@@ -87,7 +87,7 @@ class DBConnector():
     def mark_image_duplicate(self, image_id):
         client.images.update({"_id": image_id}, {"$set": {"is_duplicate": True}})
 
-	
+
     def find_images_since(self, user_id, from_date, to_date):
 	client.images.find({"user_id":user_id,
 			    "timestamp":{"$gt":from_date,"$lt":to_date}})
@@ -108,7 +108,7 @@ class DBConnector():
 	result = [x for x in client.images.find()]
         if len(result) == 0:
             return 0
-        else:	
+        else:
             return int(client.images.find({}).sort("group", -1).limit(1)[0]['group'])
 
 if __name__ == "__main__":
