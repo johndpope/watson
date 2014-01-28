@@ -26,7 +26,7 @@ def get_dropbox_auth_flow(web_app_session):
 def auth(request):
     if 'user_id' in request.session:
         print request.session['user_id']
-        return index(request)
+        return HttpResponseRedirect("/")
     return redirect(get_dropbox_auth_flow(request.session).start())
 
 def index(request):
@@ -57,8 +57,8 @@ def search(request):
     starttime = None
     endtime = None
     if query == 'two weeks ago':
-        starttime = datetime(2014, 1, 10)
-        endtime = datetime(2014, 1, 16)
+        starttime = datetime(2014, 1, 20)
+        endtime = datetime(2015, 1, 16)
 
     images = [x for x in conn.get_images_detailed(user_id, start_time=starttime, end_time=endtime, coords=[lat,lng])]
 
@@ -86,7 +86,7 @@ def dropbox_auth_finish(request):
         conn.add_user(user_id, access_token)
 
         request.session['user_id'] = user_id
-        return render_to_response('index.html')
+        redirect_to("/")
     except DropboxOAuth2Flow.BadRequestException, e:
         http_status(400)
     except DropboxOAuth2Flow.BadStateException, e:

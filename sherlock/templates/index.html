@@ -46,13 +46,13 @@ watson.controller('WatsonCtrl', function ($scope, $http) {
     function search(query) {
 	    $http.get("/api/search?query=" + encodeURIComponent(query), {})
 	    .success(function (data, status, headers, config) {
-		$scope.allResults = data;
-		console.log(data);
-        $scope.loadMore();
+		    $scope.allResults = data;
+		    console.log(data);
+            $scope.loadMore();
 	    }).error(function (data, status, headers, config) {
-		$scope.error = "Failed to load images";
+		    $scope.error = "Failed to load images";
 	    }).finally(function () {
-		$scope.isLoading = false;
+		    $scope.isLoading = false;
 	    });
     }
     
@@ -66,7 +66,7 @@ watson.controller('WatsonCtrl', function ($scope, $http) {
             $scope.results = [];
             $scope.moveAvailable = false;
             $scope.error = null;
-	    search(query);
+	        search(query);
         };
     }()), 400);
     
@@ -92,7 +92,9 @@ watson.controller('WatsonCtrl', function ($scope, $http) {
         <div class="spinner"></div>
     </div>
     <div id="columns" ng-show="results.length !== 0">
-        <div class="pin" ng-repeat="result in results"><img src='https://watson.codef.in/thumbnails/[[uid]][[result.filename.split("/").pop()]]'/></div>
+        <div class="pin" ng-repeat="result in results">
+            <img src='https://watson.codef.in/thumbnails/[[uid]][[result.filename.split("/").pop()]]' class="" />
+        </div>
     </div>
     <div class="flash" ng-show="results.length === 0 && !isLoading">No results</div>
 </div>
