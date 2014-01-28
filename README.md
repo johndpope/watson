@@ -4,5 +4,8 @@ Link your Dropbox account to Watson, and he'll listen for any updated photos, an
 
 \* Best means of 0.5 or greater on an arbitrary quality scale and not a duplicate.
 
+### Here's what it looks like when you log in
+![watson home page](https://raw.github.com/watson-app/watson/master/media/img/screenshot.png)
+
 ### Warning
 This was built at [HackTeck 2014](http://www.hacktech.io/) in 36 hours, and lacks proper documentation of requirements or style. Sorry about that.
